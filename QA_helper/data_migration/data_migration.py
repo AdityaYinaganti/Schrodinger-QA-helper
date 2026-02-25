@@ -32,7 +32,7 @@ def flatten_source(input_file, output_file, sheet_name):
     df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
     
     df.to_csv(output_file, index=False)
-    print(f"✅ Step 1 Complete: Created {output_file} from sheet '{sheet_name}'")
+    print(f"Created {output_file} from sheet '{sheet_name}'")
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
