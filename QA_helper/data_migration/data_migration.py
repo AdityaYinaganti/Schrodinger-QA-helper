@@ -36,6 +36,6 @@ def flatten_source(input_file, output_file, sheet_name):
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("Usage: python 1_flatten_data.py <input_file> <output_file.csv> <sheet_name>")
+        print("Usage: python data_migration.py <input_file> <output_file.csv> <sheet_name>")
     else:
         flatten_source(sys.argv[1], sys.argv[2], sys.argv[3])
