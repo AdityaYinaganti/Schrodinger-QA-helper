@@ -7,6 +7,9 @@ from fastapi.templating import Jinja2Templates
 import uvicorn
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from fastapi import Cookie
+from fastapi import FastAPI, Form, Request
+from fastapi.staticfiles import StaticFiles
 
 # Import your existing login verification function
 from login import verify_user_login 
@@ -16,7 +19,10 @@ app = FastAPI()
 # --- DYNAMIC PATH HANDLING ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend"))
+STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "static")) 
 templates = Jinja2Templates(directory=FRONTEND_PATH)
+
+app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static") 
 
 # --- DATABASE CONFIG ---
 DB_PARAMS = {
@@ -29,7 +35,7 @@ DB_PARAMS = {
 # --- JIRA CONFIG ---
 JIRA_DOMAIN = "schrodinger.atlassian.net"  
 JIRA_EMAIL = "aditya.yinaganti@schrodinger.com"      
-JIRA_API_TOKEN = "<Your JIRA API token>"
+JIRA_API_TOKEN = "<Your JIRA API Token>"
 
 def fetch_real_jira_updates(team_name=None):
     url = f"https://{JIRA_DOMAIN}/rest/api/3/search/jql"
@@ -38,7 +44,7 @@ def fetch_real_jira_updates(team_name=None):
     else:
         jql = "project IN (LDIMPORT, SHARED) ORDER BY updated DESC" 
         
-    QA_CLOSER_FIELD = "customfield_10142" 
+    QA_CLOSER_FIELD = "customfield_10073" 
     
     auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_API_TOKEN)
     headers = {"Accept": "application/json", "Content-Type": "application/json"}
@@ -82,14 +88,30 @@ def get_dashboard_data():
 # --- ROUTES ---
 
 @app.get("/", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def login_page(request: Request, session_token: str | None = Cookie(default=None)):
+    """The home page. If they have a valid session cookie, skip login and go to dashboard."""
+    if session_token:
+        return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...)):
+    """Verifies login and sets a persistent 7-day secure cookie."""
     if verify_user_login(username, password):
-        return RedirectResponse(url="/dashboard", status_code=303)
+        response = RedirectResponse(url="/dashboard", status_code=303)
+        # Set a cookie that lasts for 7 days (604800 seconds). 
+        # httponly=True means Javascript cannot read it, making it highly secure!
+        response.set_cookie(key="session_token", value=username, max_age=7 * 24 * 3600, httponly=True)
+        return response
+    
     return HTMLResponse(content="<h2>Login Failed</h2><a href='/'>Try Again</a>", status_code=401)
+
+@app.get("/logout")
+async def logout():
+    """Destroys the session cookie and kicks the user back to the login page."""
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("session_token")
+    return response
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -140,7 +162,7 @@ async def trigger_regression(environment: str = Form(...), ld_version: str = For
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠️ DB Error: {e}")
+        print(f"DB Error: {e}")
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @app.get("/feature/{feature_id}", response_class=HTMLResponse)
@@ -257,7 +279,7 @@ async def get_test_results(ld_version: str, run_id: str, feature_id: int):
         conn.close()
         return {str(row['case_id']): {"status": row['status'], "jira_link": row['jira_link']} for row in results}
     except Exception as e:
-        print(f"⚠️ Error fetching results: {e}")
+        print(f"Error fetching results: {e}")
         return {}
 
 @app.post("/add_test_case")
@@ -299,7 +321,7 @@ async def add_test_case(
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"Error: {e}")
     return RedirectResponse(url=f"/feature/{feature_id}", status_code=303)
 
 @app.post("/update_test_links/{case_id}")
@@ -342,7 +364,7 @@ async def update_test_links(
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"⚠Error: {e}")
     return RedirectResponse(url=f"/feature/{feature_id}", status_code=303)
 
 @app.post("/archive_test_case/{case_id}")
