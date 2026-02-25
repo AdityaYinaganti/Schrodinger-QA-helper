@@ -46,7 +46,6 @@
 
         <div class="table-card">
             <form action="/submit_checklist" method="POST">
-                
                 <input type="hidden" name="feature_id" value="{{ current_feature.feature_id }}">
 
                 <div class="row mb-4 bg-light p-3 rounded border">
@@ -72,8 +71,8 @@
                         <tr>
                             <th>Sub-Feature</th>
                             <th>Test Case Description</th>
-                            <th class="text-center">Selenium Test</th>
-                            <th class="text-center">API Test</th>
+                            <th>Selenium Test</th>
+                            <th>API Test</th>
                             <th style="width: 250px;">Status & Jira Link</th>
                             <th style="width: 50px;" class="text-center"><i class="fas fa-cog"></i></th>
                         </tr>
@@ -87,8 +86,32 @@
                                 {% if case.is_archived %}<span class="badge bg-warning text-dark ms-2" style="font-size:0.65rem;">Archived</span>{% endif %}
                             </td>
                             <td>{{ case.description }}</td>
-                            <td class="text-center"><input type="checkbox" class="form-check-input" checked disabled></td>
-                            <td class="text-center"><input type="checkbox" class="form-check-input" disabled></td>
+                            
+                            <td>
+                                {% if case.selenium_test_name %}
+                                    <a href="{{ case.selenium_test_link }}" target="_blank" class="fw-bold text-decoration-none">
+                                        <i class="fab fa-github text-dark"></i> {{ case.selenium_test_name }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">Not Linked</span>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-link text-primary p-0 ms-2" data-bs-toggle="modal" data-bs-target="#editLinksModal_{{ case.case_id }}" title="Edit Links">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
+
+                            <td>
+                                {% if case.api_test_name %}
+                                    <a href="{{ case.api_test_link }}" target="_blank" class="fw-bold text-decoration-none text-success">
+                                        <i class="fab fa-github text-dark"></i> {{ case.api_test_name }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">Not Linked</span>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-link text-primary p-0 ms-2" data-bs-toggle="modal" data-bs-target="#editLinksModal_{{ case.case_id }}" title="Edit Links">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                            </td>
                             
                             <td>
                                 <select class="form-select form-select-sm mb-2 status-dropdown" name="status_{{ case.case_id }}" onchange="toggleJiraInput(this, '{{ case.case_id }}')">
@@ -101,12 +124,45 @@
                             
                             <td class="text-center">
                                 {% if not case.is_archived %}
-                                <button type="button" onclick="if(confirm('Archive this test case? It will be hidden from future checklists.')) { document.getElementById('archiveForm_{{ case.case_id }}').submit(); }" class="btn btn-sm text-warning border-0 p-1" title="Archive Test Case">
+                                <button type="button" onclick="if(confirm('Archive this test case?')) { document.getElementById('archiveForm_{{ case.case_id }}').submit(); }" class="btn btn-sm text-warning border-0 p-1" title="Archive Test Case">
                                     <i class="fas fa-archive"></i>
                                 </button>
                                 {% endif %}
                             </td>
                         </tr>
+
+                        <div class="modal fade" id="editLinksModal_{{ case.case_id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-dark text-white">
+                                        <h5 class="modal-title"><i class="fab fa-github me-2"></i>Edit Automation Links</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="/update_test_links/{{ case.case_id }}" method="POST">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="feature_id" value="{{ current_feature.feature_id }}">
+                                            
+                                            <h6 class="fw-bold border-bottom pb-2">Selenium Test</h6>
+                                            <div class="mb-3">
+                                                <input type="text" class="form-control form-control-sm mb-2" name="selenium_test_name" placeholder="Test Name (e.g., test_export_panel)" value="{{ case.selenium_test_name or '' }}">
+                                                <input type="url" class="form-control form-control-sm" name="selenium_test_link" placeholder="GitHub URL" value="{{ case.selenium_test_link or '' }}">
+                                            </div>
+
+                                            <h6 class="fw-bold border-bottom pb-2 mt-4">API Test</h6>
+                                            <div class="mb-3">
+                                                <input type="text" class="form-control form-control-sm mb-2" name="api_test_name" placeholder="Test Name (e.g., test_api_export)" value="{{ case.api_test_name or '' }}">
+                                                <input type="url" class="form-control form-control-sm" name="api_test_link" placeholder="GitHub URL" value="{{ case.api_test_link or '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Save Links</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
                         {% endfor %}
                     </tbody>
                 </table>
@@ -139,13 +195,35 @@
                         <input type="hidden" name="feature_id" value="{{ current_feature.feature_id }}">
                         
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Sub-Feature</label>
+                            <label class="form-label fw-bold">Sub-Feature *</label>
                             <input type="text" class="form-control" name="sub_feature" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Test Case Description</label>
-                            <textarea class="form-control" name="description" rows="3" required></textarea>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Test Case Description *</label>
+                            <textarea class="form-control" name="description" rows="2" required></textarea>
                         </div>
+                        
+                        <div class="accordion" id="linksAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLinks">
+                                        <i class="fab fa-github me-2"></i> Optional: Attach GitHub Links
+                                    </button>
+                                </h2>
+                                <div id="collapseLinks" class="accordion-collapse collapse" data-bs-parent="#linksAccordion">
+                                    <div class="accordion-body bg-light">
+                                        <label class="form-label small fw-bold">Selenium Test</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" name="selenium_test_name" placeholder="Name">
+                                        <input type="url" class="form-control form-control-sm mb-3" name="selenium_test_link" placeholder="URL">
+                                        
+                                        <label class="form-label small fw-bold">API Test</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" name="api_test_name" placeholder="Name">
+                                        <input type="url" class="form-control form-control-sm" name="api_test_link" placeholder="URL">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -159,7 +237,6 @@
     <script>
         const versionsMap = {{ versions_map | tojson | safe }};
 
-        // Resets the table visually so data doesn't bleed over
         function resetTableVisuals() {
             document.querySelectorAll('.status-dropdown').forEach(select => {
                 select.value = 'Not Run';
@@ -177,7 +254,7 @@
             const runIdSelect = document.getElementById('runIdSelect');
             
             runIdSelect.innerHTML = '<option value="">Select Pass...</option>';
-            resetTableVisuals(); // Clear old table data immediately
+            resetTableVisuals();
             
             if (selectedVersion && versionsMap[selectedVersion]) {
                 versionsMap[selectedVersion].forEach(runId => {
@@ -208,11 +285,10 @@
             const ldVersion = document.getElementById('ldVersionSelect').value;
             const featureId = document.querySelector('input[name="feature_id"]').value;
             
-            resetTableVisuals(); // Reset before loading new data
+            resetTableVisuals();
 
             if (!runId || !ldVersion) return;
 
-            // Fetch results scoped to BOTH ld_version and run_id
             fetch(`/api/results?ld_version=${encodeURIComponent(ldVersion)}&run_id=${runId}&feature_id=${featureId}`)
                 .then(response => response.json())
                 .then(data => {
