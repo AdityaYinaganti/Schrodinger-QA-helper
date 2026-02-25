@@ -29,7 +29,7 @@ DB_PARAMS = {
 # --- JIRA CONFIG ---
 JIRA_DOMAIN = "schrodinger.atlassian.net"  
 JIRA_EMAIL = "aditya.yinaganti@schrodinger.com"      
-JIRA_API_TOKEN = "ATATT3xFfGF0B3BWRV1QzjagblVJmSN1coUYa1w6oTYpo68khz-FHxv2x6LAqF5xKLzRLwOXYvGYIuszj9CrBatJMPsi84BtCxKIio0fjzjaIuQE4GqaZ6QgjzO704tGkTStCn7jdtAlsUETkx8okaGSTbvC4xs-LTbz0GovohpNzvyRdfbA4Wg=5B6A061D" 
+JIRA_API_TOKEN = "<Your JIRA API TOKEN>"
 
 def fetch_real_jira_updates(team_name=None):
     """Fetches real live ticket updates from Jira. Can optionally filter by a specific team."""
@@ -69,10 +69,10 @@ def fetch_real_jira_updates(team_name=None):
                 })
             return updates
         else:
-            print(f"⚠️ Jira Error: {response.status_code} - {response.text}")
+            print(f"Jira Error: {response.status_code} - {response.text}")
             return []
     except Exception as e:
-        print(f"⚠️ Failed to connect to Jira: {e}")
+        print(f"Failed to connect to Jira: {e}")
         return []
 
 def get_dashboard_data():
@@ -168,7 +168,7 @@ async def trigger_regression(environment: str = Form(...), ld_version: str = For
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠️ DB Error: {e}")
+        print(f"DB Error: {e}")
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @app.get("/feature/{feature_id}", response_class=HTMLResponse)
@@ -256,7 +256,7 @@ async def get_test_results(ld_version: str, run_id: str, feature_id: int):
         conn.close()
         return {str(row['case_id']): {"status": row['status'], "jira_link": row['jira_link']} for row in results}
     except Exception as e:
-        print(f"⚠️ Error fetching results: {e}")
+        print(f"Error fetching results: {e}")
         return {}
 
 @app.post("/add_test_case")
@@ -269,7 +269,7 @@ async def add_test_case(feature_id: int = Form(...), sub_feature: str = Form(...
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"Error: {e}")
     return RedirectResponse(url=f"/feature/{feature_id}", status_code=303)
 
 @app.post("/archive_test_case/{case_id}")
