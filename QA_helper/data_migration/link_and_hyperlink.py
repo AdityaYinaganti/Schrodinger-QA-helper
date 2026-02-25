@@ -5,7 +5,7 @@ import os
 
 def extract_links(xlsx_file, output_file):
     if not os.path.exists(xlsx_file):
-        print(f"❌ Error: File '{xlsx_file}' not found.")
+        print(f"File '{xlsx_file}' not found.")
         return
 
     wb = openpyxl.load_workbook(xlsx_file, data_only=True)
@@ -36,10 +36,10 @@ def extract_links(xlsx_file, output_file):
         writer.writerow(['TestCase', 'Type', 'TestName', 'Link'])
         writer.writerows(automation_data)
         
-    print(f"✅ Step 2 Complete: Created {output_file}")
+    print(f"Step 2 Complete: Created {output_file}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python 2_extract_automation.py <input_xlsx> <output_file.csv>")
+        print("Usage: python link_and_hyperlink.py <input_xlsx> <output_file.csv>")
     else:
         extract_links(sys.argv[1], sys.argv[2])
