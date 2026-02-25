@@ -25,17 +25,17 @@ def verify_user_login(email, plain_password):
             
             # 4. VERIFY the plain password against the stored hash
             if pwd_context.verify(plain_password, stored_hash):
-                print(f"✅ Login Successful! Welcome, {name} (ID: {user_id})")
+                print(f"Login Successful! Welcome, {name} (ID: {user_id})")
                 return True
             else:
-                print("❌ Login Failed: Incorrect password.")
+                print("Login Failed: Incorrect password.")
                 return False
         else:
-            print("❌ Login Failed: User not found.")
+            print("Login Failed: User not found.")
             return False
 
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"Error: {e}")
         return False
     finally:
         if cur: cur.close()
