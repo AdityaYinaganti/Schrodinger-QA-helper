@@ -27,10 +27,10 @@ def sync_to_db(cases_csv, links_csv):
     conn.commit()
     cur.close()
     conn.close()
-    print("✅ Step 3 Complete: Database synced successfully.")
+    print("Database synced successfully.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python 3_db_sync.py <cleaned_cases.csv> <automation_links.csv>")
+        print("Usage: python data_to_db.py <cleaned_cases.csv> <automation_links.csv>")
     else:
         sync_to_db(sys.argv[1], sys.argv[2])
