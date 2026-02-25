@@ -29,13 +29,10 @@ DB_PARAMS = {
 # --- JIRA CONFIG ---
 JIRA_DOMAIN = "schrodinger.atlassian.net"  
 JIRA_EMAIL = "aditya.yinaganti@schrodinger.com"      
-JIRA_API_TOKEN = "<Your JIRA API TOKEN>"
+JIRA_API_TOKEN = "<Your JIRA API token>"
 
 def fetch_real_jira_updates(team_name=None):
-    """Fetches real live ticket updates from Jira. Can optionally filter by a specific team."""
     url = f"https://{JIRA_DOMAIN}/rest/api/3/search/jql"
-    
-    # If a specific team is requested, only get their tickets. Otherwise, get the main shared ones.
     if team_name:
         jql = f"project = '{team_name}' ORDER BY updated DESC"
     else:
@@ -45,11 +42,7 @@ def fetch_real_jira_updates(team_name=None):
     
     auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_API_TOKEN)
     headers = {"Accept": "application/json", "Content-Type": "application/json"}
-    payload = {
-        "jql": jql,
-        "maxResults": 5,
-        "fields": ["summary", "status", "project", QA_CLOSER_FIELD]
-    }
+    payload = {"jql": jql, "maxResults": 5, "fields": ["summary", "status", "project", QA_CLOSER_FIELD]}
 
     try:
         response = requests.post(url, headers=headers, auth=auth, json=payload, timeout=5)
@@ -68,11 +61,8 @@ def fetch_real_jira_updates(team_name=None):
                     "closer": closer_name
                 })
             return updates
-        else:
-            print(f"Jira Error: {response.status_code} - {response.text}")
-            return []
-    except Exception as e:
-        print(f"Failed to connect to Jira: {e}")
+        return []
+    except Exception:
         return []
 
 def get_dashboard_data():
@@ -108,46 +98,30 @@ async def dashboard(request: Request):
     github_link = "https://github.com/schrodinger/livedesign/pulls?q=is%3Aopen+is%3Apr+label%3A%22automation+test%22"
     
     return templates.TemplateResponse("dashboard.html", {
-        "request": request, 
-        "features": features, 
-        "teams": teams,
-        "jira_updates": jira_updates, 
-        "github_link": github_link
+        "request": request, "features": features, "teams": teams,
+        "jira_updates": jira_updates, "github_link": github_link
     })
 
 @app.get("/team/{team_id}", response_class=HTMLResponse)
 async def team_dashboard(request: Request, team_id: int):
-    """Loads a dedicated dashboard for a specific team."""
     conn = psycopg2.connect(**DB_PARAMS, cursor_factory=RealDictCursor)
     cur = conn.cursor()
-
-    # Sidebar features
     cur.execute("SELECT * FROM test_feature ORDER BY name;")
     all_features = cur.fetchall()
-
-    # Get the specific team details
     cur.execute("SELECT * FROM test_team WHERE team_id = %s;", (team_id,))
     team_data = cur.fetchone()
-
-    # Get ONLY the features belonging to this specific team
     cur.execute("SELECT * FROM test_feature WHERE team_id = %s ORDER BY name;", (team_id,))
     team_features = cur.fetchall()
-
     cur.close()
     conn.close()
 
     if not team_data:
         return RedirectResponse(url="/dashboard")
 
-    # Fetch Jira updates specifically for this team
     jira_updates = fetch_real_jira_updates(team_data['name'])
-
     return templates.TemplateResponse("team.html", {
-        "request": request,
-        "features": all_features,
-        "team": team_data,
-        "team_features": team_features,
-        "jira_updates": jira_updates
+        "request": request, "features": all_features, "team": team_data,
+        "team_features": team_features, "jira_updates": jira_updates
     })
 
 @app.post("/trigger_regression")
@@ -156,19 +130,17 @@ async def trigger_regression(environment: str = Form(...), ld_version: str = For
     try:
         conn = psycopg2.connect(**DB_PARAMS)
         cur = conn.cursor()
-        
         cur.execute("""
             INSERT INTO test_run (ld_version, run_id, name, environment) 
             VALUES (%s, %s, %s, %s) 
             ON CONFLICT (ld_version, run_id) 
             DO UPDATE SET name = EXCLUDED.name, environment = EXCLUDED.environment;
         """, (ld_version, int(run_id), run_name, environment))
-        
         conn.commit()
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"DB Error: {e}")
+        print(f"⚠️ DB Error: {e}")
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @app.get("/feature/{feature_id}", response_class=HTMLResponse)
@@ -183,12 +155,43 @@ async def feature_checklist(request: Request, feature_id: int):
     feature_data = cur.fetchone()
     owner = feature_data.get('owner', 'Unassigned') if feature_data else 'Unassigned'
     
+    # 1. Fetch the raw test cases from test_cases
     cur.execute("""
         SELECT case_id, sub_feature, description, is_archived 
         FROM test_cases WHERE feature_id = %s ORDER BY case_id;
     """, (feature_id,))
-    test_cases = cur.fetchall()
+    raw_test_cases = cur.fetchall()
 
+    # 2. Fetch the automation links from table_automation using your specific column names
+    cur.execute("""
+        SELECT case_id, test_type, test_name, automation_link 
+        FROM table_automation 
+        WHERE case_id IN (SELECT case_id FROM test_cases WHERE feature_id = %s);
+    """, (feature_id,))
+    automation_data = cur.fetchall()
+
+    # 3. Combine the data so the HTML template gets exactly what it needs
+    test_cases = []
+    for tc in raw_test_cases:
+        tc_dict = dict(tc)
+        tc_dict['selenium_test_name'] = ""
+        tc_dict['selenium_test_link'] = ""
+        tc_dict['api_test_name'] = ""
+        tc_dict['api_test_link'] = ""
+        
+        # Match the automation entries to the correct test case row
+        for auto in automation_data:
+            if auto['case_id'] == tc['case_id']:
+                if auto['test_type'] == 'Selenium':
+                    tc_dict['selenium_test_name'] = auto['test_name']
+                    tc_dict['selenium_test_link'] = auto['automation_link']
+                elif auto['test_type'] == 'API':
+                    tc_dict['api_test_name'] = auto['test_name']
+                    tc_dict['api_test_link'] = auto['automation_link']
+                    
+        test_cases.append(tc_dict)
+
+    # 4. Fetch the Cascading Dropdown Data
     cur.execute("SELECT ld_version, run_id FROM test_run ORDER BY ld_version DESC, run_id DESC;")
     runs_data = cur.fetchall()
     
@@ -243,33 +246,103 @@ async def get_test_results(ld_version: str, run_id: str, feature_id: int):
     try:
         conn = psycopg2.connect(**DB_PARAMS, cursor_factory=RealDictCursor)
         cur = conn.cursor()
-        
         cur.execute("""
             SELECT tr.case_id, tr.status, tr.jira_link 
             FROM test_result tr
             JOIN test_cases tc ON tr.case_id = tc.case_id
             WHERE tr.ld_version = %s AND tr.run_id = %s AND tc.feature_id = %s;
         """, (ld_version, run_id, feature_id))
-        
         results = cur.fetchall()
         cur.close()
         conn.close()
         return {str(row['case_id']): {"status": row['status'], "jira_link": row['jira_link']} for row in results}
     except Exception as e:
-        print(f"Error fetching results: {e}")
+        print(f"⚠️ Error fetching results: {e}")
         return {}
 
 @app.post("/add_test_case")
-async def add_test_case(feature_id: int = Form(...), sub_feature: str = Form(...), description: str = Form(...)):
+async def add_test_case(
+    feature_id: int = Form(...), 
+    sub_feature: str = Form(...), 
+    description: str = Form(...),
+    selenium_test_name: str = Form(""),
+    selenium_test_link: str = Form(""),
+    api_test_name: str = Form(""),
+    api_test_link: str = Form("")
+):
     try:
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = psycopg2.connect(**DB_PARAMS, cursor_factory=RealDictCursor)
         cur = conn.cursor()
-        cur.execute("INSERT INTO test_cases (feature_id, sub_feature, description, is_archived) VALUES (%s, %s, %s, FALSE);", (feature_id, sub_feature, description))
+        
+        # 1. Create the base manual test case and grab the generated case_id
+        cur.execute("""
+            INSERT INTO test_cases (feature_id, sub_feature, description, is_archived) 
+            VALUES (%s, %s, %s, FALSE) RETURNING case_id;
+        """, (feature_id, sub_feature, description))
+        new_case_id = cur.fetchone()['case_id']
+
+        # 2. If Selenium details were provided, add to table_automation
+        if selenium_test_name or selenium_test_link:
+            cur.execute("""
+                INSERT INTO table_automation (case_id, test_type, test_name, automation_link)
+                VALUES (%s, 'Selenium', %s, %s);
+            """, (new_case_id, selenium_test_name, selenium_test_link))
+
+        # 3. If API details were provided, add to table_automation
+        if api_test_name or api_test_link:
+            cur.execute("""
+                INSERT INTO table_automation (case_id, test_type, test_name, automation_link)
+                VALUES (%s, 'API', %s, %s);
+            """, (new_case_id, api_test_name, api_test_link))
+
         conn.commit()
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"⚠️ Error: {e}")
+    return RedirectResponse(url=f"/feature/{feature_id}", status_code=303)
+
+@app.post("/update_test_links/{case_id}")
+async def update_test_links(
+    case_id: int,
+    feature_id: int = Form(...),
+    selenium_test_name: str = Form(""),
+    selenium_test_link: str = Form(""),
+    api_test_name: str = Form(""),
+    api_test_link: str = Form("")
+):
+    try:
+        conn = psycopg2.connect(**DB_PARAMS, cursor_factory=RealDictCursor)
+        cur = conn.cursor()
+
+        # Helper to cleanly upsert data into the table_automation table
+        def upsert_automation(test_type, name, link):
+            if not name and not link: return
+            
+            # Check if an entry for this case_id and test_type already exists
+            cur.execute("SELECT automation_id FROM table_automation WHERE case_id = %s AND test_type = %s;", (case_id, test_type))
+            existing = cur.fetchone()
+            
+            if existing:
+                cur.execute("""
+                    UPDATE table_automation 
+                    SET test_name = %s, automation_link = %s 
+                    WHERE automation_id = %s;
+                """, (name, link, existing['automation_id']))
+            else:
+                cur.execute("""
+                    INSERT INTO table_automation (case_id, test_type, test_name, automation_link)
+                    VALUES (%s, %s, %s, %s);
+                """, (case_id, test_type, name, link))
+
+        upsert_automation('Selenium', selenium_test_name, selenium_test_link)
+        upsert_automation('API', api_test_name, api_test_link)
+
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Error: {e}")
     return RedirectResponse(url=f"/feature/{feature_id}", status_code=303)
 
 @app.post("/archive_test_case/{case_id}")
