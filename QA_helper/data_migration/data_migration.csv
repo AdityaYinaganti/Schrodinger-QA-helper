@@ -1,0 +1,197 @@
+LD 2026-1 Pass 3 (StartDate: 27/Jan/2025) Build(#),MS Edge Status,FireFox Status,Chrome Status,,Blocker/Critical,LD 2026-1 Pass 3 (StartDate: 27/Jan/2025) Build(#),,,LD 2026-1 Pass 2 (StartDate: 5/Jan/2025) Build(#),,,LD 2026-1 Pass 1 (StartDate: 1/Dec/2025) Build(#),,
+,Incomplete,Incomplete,Incomplete,,Major,MS Edge,FireFox,Chrome,MS Edge,FireFox,Chrome,MS Edge,FireFox,Chrome
+Testers,Not Tested,Aditya,Not Tested,,"Minor,Cosmetic",Incomplete,Incomplete,Incomplete,Incomplete,Incomplete,Some problems,Incomplete,In Progress,Incomplete
+,,,,,,Not Tested,Aditya,Not Tested,Not Tested,Not Tested,Aditya,Not Tested,Aditya,Not Tested
+Feature,SubFeature,Test Case(s),Selenium Test(s),API Test(s),Notes,,,,,,,,,
+File Import,"Acceptable/Invalid File types
+
+(Only check basic import with acceptable file formats for smoke testing)",CSV (Basic import + cases between 13-23 whichever applicable),test_csv_import,"test_load_csv
+
+test_register_compounds_via_csv","CSV User Story
+TXT ticket",,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,XLS/XLSX (Basic import + cases between 13-23 whichever applicable),test_xls_import_by_id,,Shares same import logic as CSV,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,,test_xls_import_by_smiles,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,SDF (Basic import + cases between 13-23 whichever applicable),test_valid_file_type[livereport_export_sdf.sdf-2-5-1],test_load_compounds_neg_val,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,MAE/MAE.GZ/MAEGZ (Basic import + cases between 13-23 whichever applicable),test_mae_import,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,One inaccurate compound should allow other compounds to get added,,,,,,,,,LDIMPORT-1241: Compound Import: Error in one entity of the CSV file does not allow any entity to get added to the LR. ,,,
+,,CSV files containing R groups should get imported ,,,,,,,,,LDIMPORT-1242: Compound import: CSV files containing R groups in some entities are not getting imported. ,,,
+,,All other formats import throws Invalid file type error dialog,test_pdf_jpeg_import,,"SS-12807: Invalid file type. Must be sdf, csv (.csv or .txt), Excel (.xls or .xlsx) or Maestro (.mae, .mae.gz or .maegz).",,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,Match Compounds By option,Only available when importing CSV/XLS file,N/A,N/A,,,,,,,OK,,OK,
+,,"Identifier column dropdown
+- should work with only ID/SMILES data columns
+- should not work with any other data columns",N/A,N/A,SS-34107,,,,,,OK,,,
+,,ID,test_xls_import_by_id,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,,test_csv_import,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,SMILES,test_csv_import,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,,test_xls_import_by_smiles,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,Properties to Import,Compounds only,test_sdf_import,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Columns only,,,"SS-26351
+Columns data gets imported only if structures/ID in the importing file exists/matches with the ones present in the LR",,,,,,OK,,,
+,,Both Compounds & Columns,,test_load_comps_and_columns,,,,,,,OK,,,
+,Different cases relating to different file format imports,File Imported columns should not show up in D&C Tree,,,,,,,,,OK,,,
+,,"Deduplication of identical rows:
+- Compounds
+- For duplicate rows, column data on both rows should be added against the single compound in the LR",,,,,,,,,OK,,,
+,,Importing a file and adding some compounds to the same file and trying to import them should not throw an error.,,,SS-32601,,,,,,OK,,,
+,,Real Compounds,,test_load_compound_reals,,,,,,,OK,,,
+,,"Virtual Compounds: 
+- New compounds not existing in LD registers as virtuals upon import
+- If exists in LD, displays it in LR",,test_load_compound_virtuals,,,,,,,OK,,,
+,,R-Group - Not supported through MAE,,,Check this ticket comment for details,,,,,,OK,,,
+,,Generic Entity,test_import_non_bio_file[mol],,LDIDEAS-5575,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Biologics,,,,,,,,,OK,,,
+,,Compounds with S-Groups,,,SS-25821,,,,,,LDIMPORT-1244: File Import: SDF file containing an S group is not getting imported into LiveDesign,,,
+,,Import CSV with mutiple assay values for single compound,,,"CSV values when exported in this case will have semi-colon in between the multiple assay values present in intracell alignment. So current behavior when importing CSV showing semicolon is expected.
+
+SS-30136
+
+This ticket has mentioned that during CSV import multiple values like 'abc;def;ghi' won't be added into new seperate lines as they are many edge cases. Marked as ""Won't do""",,,,,,OK,,,
+,,Import CSV with assay data with operators included,,,"As eu.user, assay data with operators doesn't display ',' as decimal seperator in some cases.
+SS-33326",,,,,,OK,,,
+,Partial ID based import,"Importing a CSV/XLS file with both IDs existing and not existing in LD DB should import only structures with existing IDs into LR and skip non-exisitng IDs but display those IDs in the dialog
+
+- Check for new error message displayed on the Import Feedback dialog
+- Proper error bacon bar on top",,,"SS-40992
+SS-40999",,,,,,LDIMPORT-1247: Compound Import: Partial Match compounds by ID option is not working. ,,,
+,File Import Receipt,Successful Import Receipt: ‘Import Completed’ message on bacon bar (Yellow),,,"File Import Receipt Overview: Lucid Chart
+
+SS-37890",,,,,,OK,,,
+,,Successful Import Receipt: Bacon bar should disappear after few seconds,,,,,,,,,OK,,,
+,,Failed Import Receipt: ‘Errors with file import 'Click to view import errors’ X’ message on Bacon bar (Red),,,"Message changed from ""File Import Failed"" to ""Errors with file import""",,,,,,OK,,,
+,,Failed Import Receipt: Bacon bar should not disappear until user clicks on the ‘X’ icon,,,,,,,,,OK,,,
+,,Failed Import Receipt: Clicking on ‘Click to view import errors’ should open up an ‘Import Feedback’ dialog with the results,,,,,,,,,OK,,,
+,,"Import Feedback Dialog
+Header: 'Import Feedback' label
+Body:
+    - Import Failed with following message: 'The following structures were not imported due to errors in the file, please correct the errors and try again.'
+    - Table with three columns ‘ENTRY’; ‘SMILES/ID’; ‘MESSAGE’ (visible based on the error type)
+Footer:
+    - Download Report (visible based on the error type)
+    - Working OK button",,,,,,,,,OK,,LDIMPORT-1219: File Import: Failure to import one entity causes all the entities to not get added to LiveDesign. ,
+,,"Import Feedback Dialog
+Clicking on 'Download Report' button exports the table into CSV file
+- Entry count on the table should match the row count on the import file
+- Check the contents of the downloaded report as csv comparing with the actual table",,,Uses Java code,,,,,,OK,,,
+,,File Size Error: >200MB throws a generic error dialog with following message: 'The maximum upload file size is 200MB; Upload smaller partitions of the file',,,,,,,,,OK,,,
+,,Data Error: Duplicate headers in file throws generic error dialog with following message: 'Duplicate Header column names found - <column_name>',,,,,,,,,OK,,,
+,,"Data Error: Blank column headers in file throws generic error dialog with following message: 'The column header in positions [<indexes>] has a blank title, please ensure all columns have a unique title.'",,,,,,,,,OK,,,
+,,Data Error: Import with invalid identifier columns,,,LDIDEAS-6719,,,,,,LDIMPORT-1248: Compound Import: Entities trying to get added through the CSV import is not showing appropriate error message. ,,,
+,,Data Error: Invalid SDF properties,,,,,,,,,OK,,,
+,,"Data Error: Column header with special characters (#, _, etc.,)",,,,,,,,,LDIMPORT-1249: Compound Import: CSV file containing a Column header with special characters is not throwing up an error. ,,,
+,,Data Error: Long header names,,,,,,,,,LDIMPORT-1085: Compound Import: CSV files with long headers are getting import without throwing an error. ,,,
+,,ID Error: Missing IDs in the file - 'ID missing for the compound',,,,,,,,,OK,,,
+,,ID Error: Spaced IDs/Non-existing IDs - 'ID does not exist in LiveDesign database',,,,,,,,,LDIMPORT-1247: Compound Import: Partial Match compounds by ID option is not working. ,,,
+,,ID Error: Long IDs - three elipses at the end of the ID on the table (overflow-wrap),,,SS-39403,,,,,,LDIMPORT-1247: Compound Import: Partial Match compounds by ID option is not working. ,,,
+,,ID Error: GE IDs - Generic Error dialog with error 'ID not existing',,,SS-39822,,,,,,LDIMPORT-1247: Compound Import: Partial Match compounds by ID option is not working. ,,,
+,,"Timeout Error: 300 seconds limit. Post that throws a generic dialog with following message: 
+'Import timed out.
+Try again or upload smaller partitions of the file'",,,SS-39707,,,,,,OK,,,
+,,Structural Error: MAE failure - Generic error dialog with following message 'Unable to Import Maestro Data',,,,,,,,,LDIMPORT-1237: Compound import with metadata wont work when TE pod is down,,,
+,,"Structural Error: 
+Errors known from core suites: (Testing any one of the below except top 2 should be okay)
+- Modified/Invalid Atom: 'Structure could not be standardized'
+- Missing SMILES: 'SMILES missing for the compound'
+- Atoms Size (Requires pre-preocessor change): '<import_atom_size> atoms present; exceeds <FF_set_size> atom limit'
+- Query bond: 'Bond Query Feature Found'
+- Variable attachment bond: 'Variable Attachment bond found'
+- R-group atom: 'Atom with R Label found'
+- Any query atom: 'Atom Query feature found'
+- No atoms (SDF with GE row): 'No atoms present'
+- kekulize 'c1ccnc1': 'Can't kekulize mol. Unkekulized atoms: <atom_numbers>'",,,Try also testing with different type of structures known to trigger error from core suites,,,,,,OK,,,
+,,"Structural Error: SDF - Generic error dialog displaying the log from BE log file
+- Invalid Atom 
+- Invalid SDF properties",,,SS-39853,,,,,,OK,,,
+,,Structural Error: SDF/MAE based import should display ID column instead of SMILES in table - import feedback dialog,,,SS-39685,,,,,,OK,,,
+,,Other Errors: Generic Error dialog with following message: 'Please email help@schrodinger.com and provide this error code in the email <error_code>',,,"No need to test this error as this cannot be triggered. If triggered, file a bug and mention details so it can be handled in future",,,,,,OK,,,
+Biologics Import,Biologics_FF,Check status of ENABLE_BIOLOGICS to access Bio-features,,,,,,,,,N/A,,,
+,Basic UI,Biologics Import UI: Bio-import option should be present,,,,,,,,,OK,,,
+,,Biologics Import UI: Entity/ Entity lot and Experiments import options,,,,,,,,,OK,,,
+,,Click on Folder Icon should open local directory,,,,,,,,,OK,,,
+,FASTA,FASTA import: Check import for all the Entity types ,test_import_biologics_fasta_multi,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Check import for separate and single entity,,,,,,,,,OK,,,
+,,"Upload a single fasta file containing multiple sequences (must be peptide, ssDNA/ssRNA)",test_import_biologics_fasta_multi,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,"If the importing ID matches preexisting ID, the 'Next' button should be greyed out.",,,SS-46853,,,,,,OK,,,
+,,Importing a file with ambigous format does not cause it to loop at 'Loading' page.,,,SS-46847,,,,,,OK,,,
+,,FASTA Import: Fasta file should not allow import of non-standard amino acid.,,,,,,,,,OK,,,
+,,The Next should not be available until all the chains have been mapped. ,test_import_biologics_fasta_multi,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,"After importing a DNA/RNA file, the sequence viewer should not show 'I' as a nucleotide.",,,,,,,,,OK,,,
+,,Full sequence header should be visible when hovered over the fasta headers.,,,SS-45458,,,,,,OK,,,
+,,Lot Property columns are not present while mapping fasta headers.,,,SS-45652,,,,,,OK,,,
+,,Downloading an imported should be imported without any error. ,,,SS-47511,,,,,,OK,,,
+,,Going back and unchecking the LiveDesign ID option should not have empty columns,,,SS-47563,,,,,,OK,,,
+,,Table header should mention Fasta header and chain instead of CSV property and LiveDesign columns. ,,,SS-45455,,,,,,OK,,,
+,,"Biologic Entity Import file formats: FASTA, HELM, ZIP of HELM & FASTA, CSV with sequence columns containing monomer strings, and CSV with sequence column containing HELM.",,,SS-45593,,,,,,OK,,,
+,,"Entity types: ssRNA, dsDNA, peptide, Fv, Fab, Fab2, monoclonal Ab, bispecific Ab etc",test_import_biologics_fasta_single,,SS-45457,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,HELM,Select a HELM file to import,test_import_biologics_helm,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,ID name should be the same as that of file name ,,,SS-41607,,,,,,OK,,,
+,,Edit the ID: provide a new ID when conflicting IDs are present (no special characters are allowed except '-'),,,SS-46603,,,,,,OK,,,
+,,"Check ""Use LiveDesign ID"" option for default LD ID (text under ID column should change and read as: LiveDesign ID assigned at registration)",,,,,,,,,OK,,,
+,,"Check ""Only show rows with conflicts"" option for entities with conflicting IDs",,,,,,,,,OK,,,
+,,LiveDesign should import the antibody that it exports.,,,SS-45971,,,,,,OK,,,
+,,"If importing a HELM file, it should not add a new column called 'helm(undefined)'",,,SS-45281,,,,,,OK,,,
+,,Import and export of a HELM file in different file formats should be done without any glitches.,,,SS-46120,,,,,,OK,,,
+,,Check images in first column match entity type and for HELM peptides shows specified connectivity in beads on a string representation,,,,,,,,,OK,,,
+,,"Check import of various entity types (Fv, Fab, Monospecific, Bispecific etc...)",test_import_biologics_helm,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Purge imported entities and try reimporting,,,SS-44396,,,,,,OK,,,
+,,"For biologics that have subcomponents (branched peptides, Fv, Fab, Fab2, mAb, bispec Ab) - appropriate children/grandchildren entities should be created",,,,,,,,,OK,,,
+,CSV,"Import a biologic with a new ID, but with the same sequence and entity type of an existing biologic, and check that the biologic is deduplicated, original biologic is added to the LR, and new ID is appended to the user ID column",,,,,,,,,OK,,,
+,,Import a CSV file,test_import_biologics_csv,test_import_csv_properties,SS-45217,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Check import for separate and single entity,test_import_biologics_csv,,SS-47015,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,"For Separate Entities, select entity type (Fv, Fab, Monospecific, Bispecific etc...)",test_import_biologics_csv,,SS-47042,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,"Check ""Seqeunce provided"" option",test_import_biologics_csv,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Seqeunce Syntax: HELM/ Monomer String (If Sequence is provided),test_import_biologics_csv,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Select or Deselect Mapping options: ID/ SS/ AS,,,,,,,,,OK,,,
+,,"If the sequence column is before the ID column, the Assign ID section should still be populated with the IDs from ID column and not with the sequence. ",,,SS-47380,,,,,,OK,,,
+,,Entities should be imported when some columns are unchecked.,,,SS-46071,,,,,,OK,,,
+,,Check if the empty sequence columns is being shown in resolve conflicts window. ,,,SS-42868,,,,,,LDIMPORT-1261: Biologics Import: CSV file containing an empty sequence does not show up in the Resolve Conflics window. ,,,
+,,IDs should be editable (no special characters are allowed except '-'),,,,,,,,,OK,,,
+,,"Check ""Use LiveDesign ID"" option for default LD ID (text under ID column should change and read as: LiveDesign ID assigned at registration)",,,,,,,,,OK,,,
+,,"Check ""Only show rows with conflicts"" option for entities with conflicting IDs",,,,,,,,,OK,,,
+,,"""Skip"" (donot import) is selected then Entities shouldn't be imported",,,,,,,,,OK,,,
+,,"""Apply"" button should only come when ""Skip"" is selected",,,,,,,,,OK,,,
+,ZIP,FASTA import: Check import for all the Entity types ,,,,,,,,,OK,,,
+,,Mapping options should be present against a valid Entity type,,,,,,,,,OK,,,
+,,FASTA Import: BE filter should be working properly.,,,SS-46572,,,,,,OK,,,
+,,FASTA Import: Check Import for multiple entities in a single file. ,test_import_biologics_zip,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,FASTA Import: Check import for multi-chain Biologic entity. ,test_fasta_zip_import,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,FASTA Import: Sequence Provided and Sequence Syntax option should be deselected.,,,,,,,,,OK,,,
+,,"""NEXT"" button should be greyed out until mapping is done properly",test_import_biologics_zip,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,"FASTA Import: If the ID is already present, the Next Button should not be available in 'Assign IDs' window. ",test_import_biologics_zip,,SS-46853,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,Toggle button-Show only conflicting rows,test_import_biologics_zip,,,,AUTO_PASS,,,,AUTO_PASS,,OK,AUTO_PASS
+,,FASTA Import: Check import for peptides with non-natural amino acids.,,,,,,,,,OK,,,
+,,"FASTA Import: If there is an error with the File import, the screen should directly go back to the Import Panel. ",,,SS-46847,,,,,,OK,,,
+,,"Use Livedesign ID, in case of conflicting IDs are present",,,,,,,,,OK,,,
+,,HELM Import: Check for the image opposite the entity.,,,SS-46401,,,,,,OK,,,
+,,Check for the children and grandchildren for monospecific and bispecific antibodies.,,,,,,,,,OK,,,
+,,HELM Import: Only Show Rows with conflicts is working properly.,,,,,,,,,OK,,,
+,,HELM Import: Check import for all entity types. ,,test_import_zip_biologics,,,,,,,OK,,,
+,121,Total Cases = 115,,,Percentage Complete,,,,0,0,100,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+LD 2026-1 Pass 3 (StartDate: 27/Jan/2025),,,,,,,,,,,,,,
+,MS Edge,Firefox,Chrome,,,,,,,,,,,
+PASS,0,0,0,,,,,,,,,,,
+FAIL,0,0,0,,,,,,,,,,,
+NOT TESTED,0,0,0,,,,,,,,,,,
+BLANK,0,87,0,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Color Keys,,,,,,,,,,,,,,
+Testers,,,,Statuses,,,,,,,,,,
+Anu,,,,OK,,,,,,,,,,
+Amrita,,,,Not Tested,,,,,,,,,,
+Hannah,,,,NA,,,,,,,,,,
+Ivy,,,,Incomplete,,,,,,,,,,
+Prachi,,,,Broken,,,,,,,,,,
+Naga Lakshmi,,,,Some problems,,,,,,,,,,
+Nitin,,,,All OK,,,,,,,,,,
+Pankhuri,,,,In Progress,,,,,,,,,,
+Ramakrishna,,,,Not Tested Final,,,,,,,,,,
+Rupal,,,,,,,,,,,,,,
+Saheli,,,,,,,,,,,,,,
+Soumya,,,,,,,,,,,,,,
+Abdul,,,,,,,,,,,,,,
+Utkarsh,,,,,,,,,,,,,,
+Vishnu,,,,,,,,,,,,,,

@@ -1,0 +1,64 @@
+TestCase,Type,TestName,Link
+Add a new protocol,API,"test_create_protocol.py
+
+test_get_and_verify_protocols_by_project_id.py
+
+test_multiple_protocols_object_and_id_by_name.py
+
+test_non_existent_protocol_object_and_id_by_name.py
+
+test_unique_protocol_object_and_id_by_name.py",https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_create_protocol.py
+Archive a protocol (without dependent model),API,test_archive_protocol.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_archive_protocol.py
+"LIST-INPUT
+- Parameter type: LIST_INPUT
+
+List Widget (upon saving command with LIST-INPUT)
+- displays a list widget just above the Model Data Section
+- Can add only either text or numeric based data 
+- Can allow Multiple Input
+- displays dropdown in the data column in model data table (upon save)
+- If no items are in list, displays ""Items for list can only be added to Text and Numeric Type""
+- Numeric data validation if non-numeric value is entered
+
+If a list value is selected in protocol or child model, removing it in list widget displays a warning message",API,test_picklist_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_picklist_models.py
+"Optional Param model 
+- Is optional checked
+- Optional parameter flag text field",API,test_is_optional_field_for_protocols.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_is_optional_field_for_protocols.py
+Archive button should be disabled if unarchived dependent model exists,API,test_archive_protocol.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_archive_protocol.py
+"Non-Admin user cannot create/edit protocols
+- Add a new protocol button won't be displayed
+- Can see only protocols in project on which user have access (User project access == Protocol Chosen projects)
+- Accessing existing protocols as non admin user displays ""Viewing in read-only mode. Only Admins and model author may edit this."" briefly.
+- Metadata fields are not editable.
+- Hovering over ""Save and continue editing"" or ""Save"" button displays tooltip with following message ""Current logged in user can't edit this model.""",API,test_check_user_with_User_role_dont_have_access_protocol_methods.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_check_user_with_User_role_dont_have_access_protocol_methods.py
+"Protocol Command, Protocol Predictions should be carried forward to models page (Note: Changes in predictions don't reflect in already existing child model)",API,test_update_protocol_changes_dependent_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_update_protocol_changes_dependent_models.py
+"Conflicting parameter source for protocols and models should show a warning message
+(Failed to save model: Model cannot be saved, because it would overwrite a READ_ONLY ('Set Fixed') parameter on the parent protocol, possibly due to the parent protocol changing)",API,test_update_protocol_changes_dependent_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_update_protocol_changes_dependent_models.py
+"Available projects in models should map to 
+Chosen Projects in Protocols",API,test_project_access_for_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_project_access_for_models.py
+Test command_type for models,API,"test_model_command_type.py
+
+test_update_model_command.py",https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_command_type.py
+Model predictions: Test by changing return type,API,test_protocol_model_predictions.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_protocol_model_predictions.py
+"New Model: Continue button instead or ""Save and Continue""",API,"test_non_existent_model_object_and_id_by_name.py
+
+test_multiple_models_object_and_id_by_name.py
+
+test_unique_model_object_and_id_by_name.py",https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_non_existent_model_object_and_id_by_name.py
+edit a model,API,test_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_models.py
+Add it to the LR,Selenium,test_add_model_column_to_lr,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/selenium/models/test_add_model_column_to_lr.py
+Add it to the LR,API,"test_models_by_column_id.py
+
+test_add_model_columns_to_lr.py",https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_models_by_column_id.py
+Test 3d and generic entity model return columns,API,test_model_with_ligand_return.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_with_ligand_return.py
+Create a image and attachment model and download the image/attachment from LR,API,test_model_template_vars.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_template_vars.py
+Create a Model (with input file or input value),API,test_default_tags_and_inheritance_for_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_default_tags_and_inheritance_for_models.py
+Edit batch size in Models and check TE page,API,test_model_with_batch_size.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_with_batch_size.py
+Add a compound and check model recalculates.,Selenium,test_rerun_model_from_column_dropdown,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/selenium/models/test_rerun_model_from_column_dropdown.py
+Add it to the LR,API,test_add_model_columns_to_lr.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_add_model_columns_to_lr.py
+"Test models set with optional parameter, with and without the optional param",API,test_is_optional_field_for_models.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_is_optional_field_for_models.py
+Add a Realtime Model to the LR,API,test_run_models_real_time.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_run_models_real_time.py
+"Test Recalculation for models rerun: 1. Automatic, 2. Manually and 3. Defered to Parent",API,test_model_automatic_rerun.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_automatic_rerun.py
+Change parent protocol for Model,API,test_update_model_parent.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_update_model_parent.py
+R-groups,Selenium,test_apply_models_to_rgroups,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/selenium/models/test_apply_models_to_rgroups.py
+Tahs and inheritance (can only test via API),API,test_model_tags_inheritance.py,https://github.com/schrodinger/livedesign/blob/master/LD-WebTests/tests/api/models/test_model_tags_inheritance.py

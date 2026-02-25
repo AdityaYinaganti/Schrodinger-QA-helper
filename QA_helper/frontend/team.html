@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ team.name }} - Team Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --sidebar-width: 280px; --primary-dark: #2c3e50; --accent-blue: #3498db; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; background: var(--primary-dark); color: white; padding: 20px; overflow-y: auto; z-index: 1000; }
+        .sidebar h4 { color: #ecf0f1; border-bottom: 1px solid #3e4f5f; padding-bottom: 10px; }
+        .feature-link { color: #bdc3c7; text-decoration: none; display: block; padding: 8px 10px; border-radius: 5px; margin-bottom: 5px; transition: 0.2s; }
+        .feature-link:hover { background: #34495e; color: white; padding-left: 15px; }
+        
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; }
+        
+        /* Feature Cards Styling */
+        .feature-card {
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            text-decoration: none;
+            color: #2c3e50;
+            display: block;
+            border-left: 5px solid #6a11cb;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            color: #6a11cb;
+        }
+
+        /* Update Cards Styling */
+        .update-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid #f39c12; /* Orange for Jira */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h4><i class="fas fa-vial me-2"></i> LiveDesign QA</h4>
+        <div class="mt-4">
+            <a href="/dashboard" class="feature-link mb-4 text-warning"><i class="fas fa-arrow-left me-2"></i> Back to Main Dashboard</a>
+            <p class="text-uppercase small fw-bold text-muted">Active Features</p>
+            {% for feature in features %}
+            <a href="/feature/{{ feature.feature_id }}" class="feature-link">
+                <i class="fas fa-folder-open me-2"></i> {{ feature.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="mb-5 border-bottom pb-3">
+            <h1 class="fw-bold text-success"><i class="fas fa-users me-3"></i>{{ team.name }} Workspace</h1>
+            <p class="text-muted">Features and active Jira tracking specific to the {{ team.name }} team.</p>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12">
+                <h4 class="mb-3"><i class="fas fa-cubes me-2 text-primary"></i> Team Features</h4>
+            </div>
+            
+            {% for team_feature in team_features %}
+            <div class="col-md-4 mb-4">
+                <a href="/feature/{{ team_feature.feature_id }}" class="feature-card h-100">
+                    <h5 class="fw-bold mb-2">{{ team_feature.name }}</h5>
+                    <p class="text-muted small mb-0"><i class="fas fa-user-tie me-2"></i>Owner: {{ team_feature.owner or 'Unassigned' }}</p>
+                </a>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <p class="text-muted bg-light p-4 rounded border text-center">No active features assigned to the {{ team.name }} team yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex align-items-center mb-3">
+                    <h4 class="mb-0 me-2"><i class="fab fa-jira me-2 text-warning"></i> Recent {{ team.name }} Tickets</h4>
+                </div>
+                
+                {% for ticket in jira_updates %}
+                <div class="update-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="badge bg-light text-dark border text-uppercase mb-2">{{ ticket.team }}</span>
+                        <a href="{{ ticket.url }}" target="_blank" class="text-primary small fw-bold text-decoration-none">
+                            {{ ticket.key }} <i class="fas fa-external-link-alt ms-1" style="font-size: 0.7rem;"></i>
+                        </a>
+                    </div>
+                    
+                    <h6 class="mb-1 mt-2">{{ ticket.summary }}</h6>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-2">
+                        <small class="text-info fw-bold">Status: {{ ticket.status }}</small>
+                        <small class="text-secondary fw-bold">
+                            <i class="fas fa-user-check me-1"></i> QA Closer: <span class="text-dark">{{ ticket.closer }}</span>
+                        </small>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted bg-light p-4 rounded border text-center">No recent Jira tickets found for this team.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

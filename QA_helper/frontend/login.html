@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Manager - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* The Main Container from your Screenshot */
+        .container {
+            width: 600px;
+            border: 1px solid #333;
+            background-color: #e0e0e0; /* Match that grey background */
+            text-align: center;
+        }
+
+        /* The Header section */
+        .header {
+            border-bottom: 1px solid #333;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* The Form area */
+        .content {
+            padding: 40px 20px;
+        }
+
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .input-group label {
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .input-group input {
+            width: 150px;
+            padding: 5px;
+            border: 1px solid #333;
+            background: transparent;
+        }
+
+        .login-btn {
+            margin-top: 20px;
+            padding: 5px 60px;
+            font-size: 18px;
+            background-color: #f0f0f0;
+            border: 1px solid #333;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        /* The links at the bottom */
+        .footer-links {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            color: black;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">TEST CASE MANAGER</div>
+    
+    <div class="content">
+        <form action="http://127.0.0.1:8000/login" method="POST">
+            <div class="input-group">
+                <label for="username">UserName:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <div class="footer-links">
+            <a href="/create-user">Create New User?</a>
+            <a href="/forgot-password">Forgot Password?</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
